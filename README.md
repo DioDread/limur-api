@@ -1,4 +1,5 @@
-# Limur App
+# limur-api
+Limur service backend
 
 # Installation
 ## Install virtualenv

@@ -102,3 +102,11 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Elixir specific
+/_build
+/cover
+/deps
+erl_crash.dump
+*.ez
+*.beam
