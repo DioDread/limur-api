@@ -16,12 +16,12 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 from tastypie.api import Api
-from limur.api import UserResource
-
-print(UserResource)
+from limur.api.example_api import UserResource
+from limur.api.auth_api import AuthResource
 
 v1_api = Api(api_name='v1')
 v1_api.register(UserResource())
+v1_api.register(AuthResource())
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
