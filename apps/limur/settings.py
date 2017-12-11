@@ -85,7 +85,6 @@ DATABASES = {
         'PASSWORD': 'writer',
         'HOST': 'localhost',
         'TEST': {
-            'NAME': 'limur-test'
         }
     }
 }

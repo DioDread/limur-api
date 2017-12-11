@@ -1,6 +1,6 @@
 from limur.models.auth import UserProfile
 
-from util.resources import make_url, api_method
+from util.resources import api_method, ResourceUtil
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.http import HttpResponse
@@ -9,7 +9,7 @@ from tastypie.resources import Resource
 import json
 
 
-class AuthResource(Resource):
+class AuthResource(ResourceUtil, Resource):
 
     class Meta:
         allowed_methods = []
@@ -17,10 +17,10 @@ class AuthResource(Resource):
 
     def prepend_urls(self):
         return [
-            make_url(self, 'login'),
-            make_url(self, 'logout'),
-            make_url(self, 'register'),
-            make_url(self, 'session'),
+            self.make_url('login'),
+            self.make_url('logout'),
+            self.make_url('register'),
+            self.make_url('session'),
         ]
 
     @api_method(allowed_methods=['post'])

@@ -20,17 +20,18 @@ def api_method(allowed_methods=['get']):
         return wrapped
     return decorator
 
-# TODO Make resource mixin
-def make_url(self, name, view=None):
-    if not view:
-        view = name
 
-    return url(
-        r"^(?P<resource_name>{resource_name})/{api_name}{trailing_slash}".format(**{
-            'resource_name': self._meta.resource_name,
-            'api_name': name,
-            'trailing_slash': trailing_slash()
-        }),
-        self.wrap_view(view),
-        name="api_%s" % name
-    )
+class ResourceUtil(object):
+    def make_url(self, name, view=None):
+        if not view:
+            view = name
+
+        return url(
+            r"^(?P<resource_name>{resource_name})/{api_name}{trailing_slash}".format(**{
+                'resource_name': self._meta.resource_name,
+                'api_name': name,
+                'trailing_slash': trailing_slash()
+            }),
+            self.wrap_view(view),
+            name="api_%s" % name
+        )

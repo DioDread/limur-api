@@ -35,7 +35,7 @@ TODO: assign project dir to venv
 ## Install python deps
 ```
 cd <app_root_dir>
-pip3 isntall -r requirements.pip
+pip3 install -r requirements.pip
 ```
 
 ## Install postgre db
@@ -68,3 +68,9 @@ python manage.py migrate
 python manage.py runserver 0:9000
 ```
 Now you should be able to open localhost:9000/admin in your browser
+
+## Run tests
+Default DB user `writer` should have `creatdb` permission. You could add it via `alter user writer createdb`.
+```
+python manage.py test
+```
