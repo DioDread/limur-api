@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tastypie',
-
+    'corsheaders',
     'limur',
 ]
 
@@ -50,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'limur.urls'
@@ -81,11 +82,27 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'limur-dev',
         'USER': 'writer',
+        'PASSWORD': 'writer',
+        'HOST': 'localhost',
         'TEST': {
             'NAME': 'limur-test'
         }
     }
 }
+
+CORS_ORIGIN_WHITELIST = (
+    'http://localhost:3000',
+    '127.0.0.1:9000'
+)
+
+CORS_ALLOW_METHODS = (
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+)
 
 
 # Password validation

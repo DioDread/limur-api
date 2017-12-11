@@ -1,3 +1,4 @@
 Django==1.11
 django-tastypie==0.14
 psycopg2==2.7.3.2
+django-cors-headers==2.1.0
