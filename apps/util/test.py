@@ -111,6 +111,12 @@ class ResourceTestUtil(object):
                 content_type='application/json')
         )
 
+    def post(self, *args, **kwargs):
+        """
+        An alias for `create` function
+        """
+        return self.create(*args, **kwargs)
+
     def read(self, id=None, params=None):
         return ResponseWrapper(
             self.client.get(

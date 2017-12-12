@@ -1,12 +1,12 @@
-from limur.models.auth import UserProfile
+import json
 
 from util.resources import api_method, ResourceUtil
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from tastypie.resources import Resource
 
-import json
+from limur.models.auth import UserProfile
 
 
 class AuthResource(ResourceUtil, Resource):
@@ -30,6 +30,13 @@ class AuthResource(ResourceUtil, Resource):
         except ValueError as e:
             self.raise_error('Invalid POST request body: %s' % e.message)
 
+        def invalid_passowrd_resp(request):
+            return self.create_response(
+                request,
+                'Invalid login/password pair',
+                response_class=HttpResponseBadRequest,
+            )
+
         # TODO Throttle
 
         users = User.objects.filter(
@@ -39,13 +46,7 @@ class AuthResource(ResourceUtil, Resource):
         matches = len(users)
 
         if matches == 0:
-            # TODO Create HttpResponseUnauthorized
-            return self.create_response(
-                request,
-                'Ivalid User/Password pair',
-                response_class=HttpResponse,
-                status=401,
-            )
+            return invalid_passowrd_resp(request)
         elif matches == 1:
             user = users[0]
             # TODO Check user.userprofile exists
@@ -65,7 +66,7 @@ class AuthResource(ResourceUtil, Resource):
             return self.create_response(request, {'msg': 'Logged in'})
         else:
             # TODO incr invalid attemts
-            raise Error
+            return invalid_passowrd_resp(request)
 
     @api_method(allowed_methods=['get'])
     def logout(self, request, **kwargs):
