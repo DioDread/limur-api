@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from .organization import Organization
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(
@@ -8,6 +10,11 @@ class UserProfile(models.Model):
         on_delete=models.CASCADE,
         primary_key=True,
         related_name='userprofile',
+    )
+
+    organization = models.ForeignKey(
+        Organization, null=True, blank=True,
+        help_text='Organization associated with user'
     )
 
     phone = models.CharField(
