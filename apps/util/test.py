@@ -69,7 +69,20 @@ class ResourceTestUtil(object):
         return ''
 
     def set_context(self, context=None):
-        self._RESOURCE = context if context else self.RESOURCE
+        """
+        Sets API context - different Resource to work with
+        If `context` is `None` - restores back to original state
+        :param context: resource to work with
+        :ptype context: tastypie.Resource
+        """
+        self._RESOURCE = context if context else self.RESOURCE._meta.resource_name
+
+    def restore_context(self):
+        """
+        Restores API context to original state
+        An alias for `self.set_context()`
+        """
+        self.set_context()
 
     def get_response_data(self, res):
         """
@@ -154,4 +167,18 @@ class ResourceTestUtil(object):
 
 
 class BaseResourceTest(ResourceTestUtil, ResourceTestCaseMixin, TestCase):
-    pass
+    DEFAULT_EMAIL = 'user@domain.com'
+    DEFAULT_PASSWORD = 'password_1'
+
+    def login_user(self, email=DEFAULT_EMAIL, password=DEFAULT_PASSWORD):
+        payload = {
+            'email': email,
+            'password': password,
+        }
+        # Force init
+        self._list_endpoint()
+        old = self._RESOURCE
+        self._RESOURCE = 'auth'
+        resp = self.post(payload, 'login', bare=True)
+        self._RESOURCE = old
+        return resp

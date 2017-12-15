@@ -56,16 +56,20 @@ class AuthResource(ResourceUtil, Resource):
 
         # TODO max attempts
 
-        user = authenticate(username=user.username, password=payload.get('password'))
-        if user is not None:
+        auth_user = authenticate(username=user.username, password=payload.get('password'))
+        if auth_user is not None:
             # TODO Check expired
             # TODO Check is active
-            login(request, user)
-            # TODO Reset invalid attempts
+            login(request, auth_user)
+            # Reset invalid attempts
+            user.userprofile.invalid_attemps_count = 0
+            user.userprofile.save()
             # TODO Return session
             return self.create_response(request, {'msg': 'Logged in'})
         else:
-            # TODO incr invalid attemts
+            # incr invalid attemts
+            user.userprofile.invalid_attemps_count += 1
+            user.userprofile.save()
             return invalid_passowrd_resp(request)
 
     @api_method(allowed_methods=['get'])
