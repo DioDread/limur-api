@@ -1,10 +1,22 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from .organization import Organization
 
 
 class UserProfile(models.Model):
+    ORG_ACCESS_OWNER = 'owner'
+    ORG_ACCESS_ADMIN = 'admin'
+    ORG_ACCESS_NONE = None
+
+    ORG_ACCESS_CHOICES = (
+        (ORG_ACCESS_OWNER, 'Owner',),
+        (ORG_ACCESS_ADMIN, 'Administrator',),
+        (ORG_ACCESS_NONE, 'None'),
+    )
+
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
@@ -36,5 +48,24 @@ class UserProfile(models.Model):
         help_text='Date time when account will be unlocked for logging in',
     )
 
+    is_moderator = models.BooleanField(
+        default=False,
+        help_text='Moderator role enabled',
+    )
+
+    org_access_level = models.CharField(
+        max_length=8,
+        null=True,
+        blank=True,
+        default=None,
+        choices=ORG_ACCESS_CHOICES
+    )
+
     class Meta:
         db_table = 'userprofile'
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
