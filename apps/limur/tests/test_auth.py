@@ -16,7 +16,7 @@ class AuthResourceTest(BaseResourceTest):
             'email': email,
             'password': self.DEFAULT_PASSWORD
         }
-        self.assertHttpOK(self.post(payload, 'register', bare=True))
+        return self.post(payload, 'register', bare=True)
 
     def get_user(self, email=None):
         if email is None:
@@ -29,7 +29,7 @@ class AuthResourceTest(BaseResourceTest):
     def test_register_valid(self):
         email = 'test@email'
 
-        self.register_user(email)
+        self.assertHttpOK(self.register_user(email))
         user = User.objects.get(email=email)
 
         # Check user email is correct
@@ -38,6 +38,10 @@ class AuthResourceTest(BaseResourceTest):
         self.assertNotEqual(user.password, 'password')
         # Check user profile exists
         ref = user.userprofile
+
+    def test_register_invlid_duplicate(self):
+        self.register_user()
+        self.assertHttpBadRequest(self.register_user())
 
     def test_user_deleted(self):
         email = 'test@email'
@@ -84,6 +88,13 @@ class AuthResourceTest(BaseResourceTest):
         self.assertHttpOK(self.login_user())
         up = self.get_user().userprofile
         self.assertEqual(up.invalid_attemps_count, 0)
+
+    def test_login_invalid_inactive(self):
+        self.register_user()
+        user = self.get_user()
+        user.is_active = False
+        user.save()
+        self.assertHttpBadRequest(self.login_user())
 
     def test_login_invalid_lock_out(self):
         self.register_user()

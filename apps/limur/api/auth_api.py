@@ -37,8 +37,6 @@ class AuthResource(ResourceUtil, Resource):
                 response_class=HttpResponseBadRequest,
             )
 
-        # TODO Throttle
-
         users = User.objects.filter(
             email=payload.get('email')
         ).prefetch_related('userprofile')
@@ -49,17 +47,37 @@ class AuthResource(ResourceUtil, Resource):
             return invalid_passowrd_resp(request)
         elif matches == 1:
             user = users[0]
-            # TODO Check user.userprofile exists
+            # Check user.userprofile exists
+            if not user.userprofile:
+                # TODO Log an error
+                # Throw an error
+                return self.create_response(
+                    request,
+                    'Error! User profile is damaged. Contact us please!',
+                    response_class=HttpResponseBadRequest,
+                )
         else:
-            pass
-            # TODO probably an error
+            # probably an error
+            # TODO log
+            return self.create_response(
+                request,
+                'Error! User profile is damaged. Contact us please!',
+                response_class=HttpResponseBadRequest,
+            )
 
         # TODO max attempts
 
         auth_user = authenticate(username=user.username, password=payload.get('password'))
         if auth_user is not None:
             # TODO Check expired
-            # TODO Check is active
+            # Check is active
+            if not user.is_active:
+                return self.create_response(
+                    request,
+                    'Error! The account is suspended. Please, contact us.',
+                    response_class=HttpResponseBadRequest,
+                )
+
             login(request, auth_user)
             # Reset invalid attempts
             user.userprofile.invalid_attemps_count = 0
@@ -81,8 +99,16 @@ class AuthResource(ResourceUtil, Resource):
     def register(self, request, **kwargs):
         payload = json.loads(request.body)
 
-        # TODO Check exists
         email = payload['email']
+
+        # Check exists
+        if User.objects.filter(email=email).exists():
+            return self.create_response(
+                request,
+                'Requested email already in use!',
+                response_class=HttpResponseBadRequest,
+            )
+
         username = email
 
         user = User.objects.create_user(username, email)
