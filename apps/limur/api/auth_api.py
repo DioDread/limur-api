@@ -52,7 +52,7 @@ class AuthResource(ResourceUtil, Resource):
         elif matches == 1:
             user = users[0]
             # Check user.userprofile exists
-            if not user.userprofile:
+            if not hasattr(user, 'userprofile'):
                 # TODO Log an error
                 # Throw an error
                 return self.create_response(

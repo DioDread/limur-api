@@ -24,6 +24,7 @@ class UserProfile(models.Model):
         related_name='userprofile',
     )
 
+    # TODO Probably should be a M2M relation through org access table
     organization = models.ForeignKey(
         Organization, null=True, blank=True,
         help_text='Organization associated with user'
@@ -53,6 +54,7 @@ class UserProfile(models.Model):
         help_text='Moderator role enabled',
     )
 
+    # TODO Probably should be moved to M2M link table
     org_access_level = models.CharField(
         max_length=8,
         null=True,
