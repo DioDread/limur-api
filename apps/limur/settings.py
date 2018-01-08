@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -84,8 +85,6 @@ DATABASES = {
         'USER': 'writer',
         'PASSWORD': 'writer',
         'HOST': 'localhost',
-        'TEST': {
-        }
     }
 }
 
@@ -129,6 +128,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
+LOCAL_TIME_ZONE = 'Europe/Minsk'
 
 USE_I18N = True
 
@@ -141,3 +141,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Number of invalid log in attempts before account lock
+MAX_LOGIN_ATTEMPTS = 3
+
+# Duration of log in lock
+LOGIN_LOCK_DURATION = timedelta(seconds=15 * 60)

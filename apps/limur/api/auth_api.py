@@ -1,12 +1,15 @@
 import json
+import pytz
 
-from util.resources import api_method, ResourceUtil
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseBadRequest
+from django.utils import timezone
 from tastypie.resources import Resource
 
 from limur.models.auth import UserProfile
+from util.resources import api_method, ResourceUtil
 
 
 class AuthResource(ResourceUtil, Resource):
@@ -27,6 +30,7 @@ class AuthResource(ResourceUtil, Resource):
     def login(self, request, **kwargs):
         try:
             payload = json.loads(request.body)
+        # FIXME JSONDecodeError
         except ValueError as e:
             self.raise_error('Invalid POST request body: %s' % e.message)
 
@@ -56,16 +60,29 @@ class AuthResource(ResourceUtil, Resource):
                     'Error! User profile is damaged. Contact us please!',
                     response_class=HttpResponseBadRequest,
                 )
+            userprofile = user.userprofile
         else:
             # probably an error
             # TODO log
             return self.create_response(
                 request,
-                'Error! User profile is damaged. Contact us please!',
-                response_class=HttpResponseBadRequest,
+                'error! user profile is damaged. contact us please!',
+                response_class=httpresponsebadrequest,
             )
 
-        # TODO max attempts
+        # Check if login is locked
+        if userprofile.lock_out_end is not None:
+            now = timezone.now()
+            if now > userprofile.lock_out_end:
+                userprofile.lock_out_end = None
+            else:
+                return self.create_response(
+                    request,
+                    'Too many attemts. Try again at {}'.format(
+                        timezone.localtime(userprofile.lock_out_end, pytz.timezone(settings.LOCAL_TIME_ZONE))
+                    ),
+                    response_class=HttpResponseBadRequest,
+                )
 
         auth_user = authenticate(username=user.username, password=payload.get('password'))
         if auth_user is not None:
@@ -74,20 +91,25 @@ class AuthResource(ResourceUtil, Resource):
             if not user.is_active:
                 return self.create_response(
                     request,
-                    'Error! The account is suspended. Please, contact us.',
+                    'Error! The account is inactivated. Please, contact us.',
                     response_class=HttpResponseBadRequest,
                 )
 
             login(request, auth_user)
+
             # Reset invalid attempts
-            user.userprofile.invalid_attemps_count = 0
-            user.userprofile.save()
+            if userprofile.invalid_attemps_count > 0:
+                userprofile.invalid_attemps_count = 0
+                userprofile.save()
             # TODO Return session
             return self.create_response(request, {'msg': 'Logged in'})
         else:
             # incr invalid attemts
-            user.userprofile.invalid_attemps_count += 1
-            user.userprofile.save()
+            userprofile.invalid_attemps_count += 1
+            # Lock account if max attempts reached
+            if userprofile.invalid_attemps_count > settings.MAX_LOGIN_ATTEMPTS:
+                userprofile.lock_out_end = timezone.now() + settings.LOGIN_LOCK_DURATION
+            userprofile.save()
             return invalid_passowrd_resp(request)
 
     @api_method(allowed_methods=['get'])
@@ -119,12 +141,6 @@ class AuthResource(ResourceUtil, Resource):
         user.set_password(password)
         user.is_active=True
         user.save()
-
-        userprofile = UserProfile.objects.create(
-            user=user,
-        )
-
-        userprofile.save()
 
         # TODO Send mail
 
